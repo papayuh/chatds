@@ -1,0 +1,84 @@
+# 5 runs; staged selftest=5707aaa7; median exact-layer hw/emu=1.36
+metric                   hw_median  spread%         emu  hw/emu  flag
+sf_fmul                         36     2.8%          40    0.90  <-- emulator wrong on this lever
+sf_fadd                         53     0.0%          62    0.85  <-- emulator wrong on this lever
+sf_fdiv                        132     0.0%         141    0.94  
+sf_i2f                          30     0.0%          29    1.03  
+sf_f2i                          19     5.3%          22    0.86  <-- emulator wrong on this lever
+lm_sqrtf                       406     0.2%         341    1.19  
+lm_expf                       1305     0.0%        1455    0.90  <-- emulator wrong on this lever
+lm_cosf                       1329     0.0%        1403    0.95  
+lm_roundf                       36     2.8%          32    1.12  
+mv_ref_thumb                791695     0.0%      841315    0.94  
+mv_ref_arm                  584836     0.1%      719792    0.81  <-- emulator wrong on this lever
+mv_ds_byte                  463808     0.1%      585409    0.79  <-- emulator wrong on this lever
+mv_ds_word                  275906     0.3%      302443    0.91  
+mv_ds_ldm                   229023     0.4%      239585    0.96  
+mv_ds_gx                    288405     0.2%      319781    0.90  <-- emulator wrong on this lever
+mv_ds_fix                   261004     0.1%      293808    0.89  <-- emulator wrong on this lever
+mv_ds_word_dtcm             269163     0.1%      302145    0.89  <-- emulator wrong on this lever
+mv_ds_word_itcm             275828     0.1%      262974    1.05  
+mv_ds_word_i+d              269076     0.1%      262957    1.02  
+mv_ds_fix_i+d               209643     0.3%      157535    1.33  
+mv_ds_ldm_i+d               222542     0.3%      172377    1.29  
+mv_ds_ldmfix_i+d            210050     0.1%      157884    1.33  
+mv_ds_il_i+d                279433     0.0%      235302    1.19  
+mv_dsq8_i                   232565     0.2%      178412    1.30  
+mv_dsq4_i                   198149     0.0%      176347    1.12  
+mv_ds_gs32                  246915     0.2%      240878    1.03  
+mv_ds_gs64                  207593     0.1%      184100    1.13  
+mv_ds_gs128                 187412     0.1%      156931    1.19  
+mv_ds_gsrow                 180269     0.2%      149489    1.21  
+mv4_ref_thumb               977806     0.0%     1035811    0.94  
+mv4_ref_arm                 689346     0.0%      839246    0.82  <-- emulator wrong on this lever
+mv4_ds_pair                 351657     0.2%      477226    0.74  <-- emulator wrong on this lever
+mv4_ds_word                 199945     0.1%      248613    0.80  <-- emulator wrong on this lever
+mv4_ds_word_i+d             196011     0.0%      173382    1.13  
+mv4_ds_fix_i+d              182915     0.3%      157924    1.16  
+attn_f32_p255             12432161     0.0%    13294914    0.94  
+attn_kvq8_p255            57870886     0.0%    63884942    0.91  
+attn_int_p255               990264     0.1%      735800    1.35  
+attn_ints_p255              960221     0.0%      714817    1.34  
+attn_int_i_p255             992683     0.1%      554867    1.79  
+attn_f32_p63               3166338     0.0%     3388296    0.93  
+attn_kvq8_p63             14530851     0.0%    16025874    0.91  
+attn_int_p63                232296     0.2%      198864    1.17  
+rms_ref_192                  35709     0.0%       39318    0.91  
+rms_ref_arm_192              33365     0.0%       38696    0.86  <-- emulator wrong on this lever
+quant_ref_192                52535     0.0%       54990    0.96  
+quantrow_ds_192              46583     0.0%       54980    0.85  <-- emulator wrong on this lever
+rmsq_fix_192                 12763     0.6%       15496    0.82  <-- emulator wrong on this lever
+rmsq_fix_i_192               12772     0.6%       12579    1.02  
+quantfix_192                  4034     1.8%        4997    0.81  <-- emulator wrong on this lever
+rmsqgx_i_192                 16383     0.4%       15563    1.05  
+quantgx_i_192                 7734     0.1%        7468    1.04  
+rope_ref_192                256592     0.0%      277355    0.93  
+rope_fix_192                 12007     0.5%       14595    0.82  <-- emulator wrong on this lever
+silu_ref_512                530070     0.1%      582807    0.91  
+silu_fix_512                 23435     1.6%       27351    0.86  <-- emulator wrong on this lever
+softmax_ref_256             416090     0.0%      464278    0.90  <-- emulator wrong on this lever
+softmax_fix_256               9438     1.1%       12484    0.76  <-- emulator wrong on this lever
+add_ref_192                   6025     1.0%        7899    0.76  <-- emulator wrong on this lever
+add_fix_192                   3155     2.0%        4357    0.72  <-- emulator wrong on this lever
+kvappend_fix                  8737     1.7%        7555    1.16  
+layerA_ref_p255           66341640     0.0%    72710504    0.91  
+layerA_refarm_p255        59169240     0.0%    69108220    0.86  <-- emulator wrong on this lever
+layerA_ds_p255             4138345     0.0%     4333979    0.95  
+layerA_dsi_p255            3600935     0.0%     2515925    1.43  
+layerA_ref_p31            18112038     0.0%    19523128    0.93  
+layerA_dsi_p31             2700597     0.0%     2027862    1.33  
+layerA_dsq8_p255           3876507     0.0%     2757314    1.41  
+layerA_dsq8_p31            2975831     0.0%     2270250    1.31  
+layerA_dsq4_p255           3465863     0.0%     2735424    1.27  
+layerB_ref_p255          106220186     0.0%   116223776    0.91  
+layerB_dsi_p255            6965769     0.0%     4974640    1.40  
+layerB_ref_p31            34363462     0.0%    36909954    0.93  
+layerB_dsi_p31             5768720     0.1%     4318192    1.34  
+layerB_dsq8_p255           7555799     0.0%     5443209    1.39  
+layerB_dsq8_p31            6354537     0.0%     4785043    1.33  
+layerB_dsq4_p255           6620901     0.0%     5390758    1.23  
+clsread_split_ms              5748     0.3%        8270    0.70  <-- emulator wrong on this lever
+clsread_inter_ms              5560     0.0%        1762    3.16  <-- emulator wrong on this lever
+ok                               1     0.0%           1       -  
+clsread_rawseq_kibs           1826     0.0%        5751    0.32  <-- emulator wrong on this lever
+bytes                     10368000     0.0%    10368000       -  

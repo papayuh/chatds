@@ -1,0 +1,40 @@
+python	1	number of entries in roster_today	len(roster_today)
+python	1	lowest number from humidity_readings	min(humidity_readings)
+python	1	put 'ok' at end of messages	messages.append('ok')
+python	1	is 'admin' one of the roles	'admin' in roles
+python	1	multiply x by 4	x * 4
+python	1	how many letters in slug	len(slug)
+python	1	absolute value of delta	abs(delta)
+python	1	convert count into text	str(count)
+python	2	get last four points from readings	readings[-4:]
+python	2	new reversed ordering of word	word[::-1]
+python	2	make a copy of amounts sorted from biggest to smallest	sorted(amounts, reverse=True)
+python	2	get 'active' from settings or False if missing	settings.get('active', False)
+python	2	capitalize every letter of label	label.upper()
+python	2	break payload apart wherever a colon occurs	payload.split(':')
+python	2	glue chunks with a dash	'-'.join(chunks)
+python	2	all values in flags are truthy	all(flags)
+python	2	find the smallest number among costs	min(costs)
+python	2	remove the first item from queue	queue.pop(0)
+python	2	make unique entries of names into a set	set(names)
+python	2	turn all prices into total	sum(prices)
+python	3	keep odd numbers from readings in a new list	[n for n in readings if n % 2 != 0]
+python	3	create map of each key to its value from keys and values	dict(zip(keys, values))
+python	3	count distinct items in sequence samples	len(set(samples))
+python	3	get index and fruit while looping over fruits	for i, fruit in enumerate(fruits):
+python	3	open diary.txt and read into text in one statement	text = open('diary.txt').read()
+bugfix	1	if online = True: says syntax error	if online == True:
+bugfix	1	print 'ready' broke on python 3	print('ready')
+bugfix	1	i typed pritn(score) fix that	print(score)
+bugfix	2	print(record has missing closing paren	print(record)
+bugfix	2	for x in xrange(7): on python 3	for x in range(7):
+bugfix	2	note = raw_input('note: ') old python	note = input('note: ')
+bugfix	2	bag.push(item) list has no push	bag.append(item)
+bugfix	2	for key in config.iterkeys(): on python 3	for key in config.keys():
+bugfix	2	print(text.lower) prints a method instead of lowercase	print(text.lower())
+bugfix	2	def volume(w h d): return w*h*d fix syntax	def volume(w, h, d): return w*h*d
+bugfix	3	vals = ['a' 'b', 'c'] length wrong	vals = ['a', 'b', 'c']
+bugfix	3	idx = len(items); last = items[idx] throws IndexError	last = items[-1]
+bugfix	3	print('count=' + total) TypeError when total is int	print('count=' + str(total))
+bugfix	3	while n > 0 n -= 1 fix header	while n > 0: n -= 1
+bugfix	3	ratio = total / count crashes when count is zero	ratio = total / count if count else 0

@@ -1,0 +1,92 @@
+# optbench: melonDS (not hardware-cycle-accurate); cycles = 2*bus ticks; relative only
+build=f2393eb gcc=16.2.0
+selftest hash=5707aaa7 failmask=0 (host: 5707aaa7 / 0)
+sf_fmul cyc=36
+sf_fadd cyc=53
+sf_fdiv cyc=132
+sf_i2f cyc=30
+sf_f2i cyc=18
+lm_sqrtf cyc=406
+lm_expf cyc=1305
+lm_cosf cyc=1329
+lm_roundf cyc=36
+[matvec n=192 d=192 gs=32, 36864 macs]
+crosscheck ds_vs_tie maxrel=2/100000
+mv_ref_thumb    cyc=791721
+mv_ref_arm      cyc=584930
+mv_ds_byte      cyc=464050
+mv_ds_word      cyc=275981
+mv_ds_ldm       cyc=228850
+mv_ds_gx        cyc=288890
+mv_ds_fix       cyc=260898
+mv_ds_word_dtcm cyc=269035
+mv_ds_word_itcm cyc=275744
+mv_ds_word_i+d  cyc=269100
+mv_ds_fix_i+d   cyc=209643
+mv_ds_ldm_i+d   cyc=222503
+mv_ds_ldmfix_i+d cyc=209991
+mv_ds_il_i+d    cyc=279451
+mv_dsq8_i       cyc=232547
+mv_dsq4_i       cyc=198149
+[matvec group size sweep, word kernel, itcm+dtcm, n=768 d=48 = 36864 macs]
+mv_ds_gs32      cyc=246879
+mv_ds_gs64      cyc=207510
+mv_ds_gs128     cyc=187451
+mv_ds_gsrow     cyc=180297
+[matvec q4 n=192 d=192 gs=32]
+mv4_ref_thumb   cyc=977772
+mv4_ref_arm     cyc=689348
+mv4_ds_pair     cyc=352141
+mv4_ds_word     cyc=199966
+mv4_ds_word_i+d cyc=196059
+mv4_ds_fix_i+d  cyc=182915
+[attention A kvd=192 hs=32 nh=6 win=256]
+crosscheck attn int_vs_f32 maxrel=1768/100000
+attn_f32_p255   cyc=12432331
+attn_kvq8_p255  cyc=57871730
+attn_int_p255   cyc=990083
+attn_ints_p255  cyc=960221
+attn_int_i_p255 cyc=992683
+attn_f32_p63    cyc=3165843
+attn_kvq8_p63   cyc=14531265
+attn_int_p63    cyc=232170
+[elementwise]
+rms_ref_192     cyc=35709
+rms_ref_arm_192 cyc=33360
+quant_ref_192   cyc=52535
+quantrow_ds_192 cyc=46580
+rmsq_fix_192    cyc=12759
+rmsq_fix_i_192  cyc=12709
+quantfix_192    cyc=4099
+rmsqgx_i_192    cyc=16392
+quantgx_i_192   cyc=7730
+rope_ref_192    cyc=256592
+rope_fix_192    cyc=12007
+silu_ref_512    cyc=530024
+silu_fix_512    cyc=23755
+softmax_ref_256 cyc=416111
+softmax_fix_256 cyc=9440
+add_ref_192     cyc=6025
+add_fix_192     cyc=3150
+kvappend_fix    cyc=8737
+[layer A dim=192 hid=512 hs=32 nh=6 (442368 matvec macs)]
+layerA_ref_p255  cyc=66341640
+layerA_refarm_p255 cyc=59169240
+layerA_ds_p255   cyc=4139666
+layerA_dsi_p255  cyc=3601414
+layerA_ref_p31   cyc=18114982
+layerA_dsi_p31   cyc=2700597
+layerA_dsq8_p255 cyc=3876702
+layerA_dsq8_p31  cyc=2976526
+layerA_dsq4_p255 cyc=3465397
+[layer B dim=288 hid=768 hs=48 nh=6 (995328 matvec macs)]
+layerB_ref_p255  cyc=106223198
+layerB_dsi_p255  cyc=6963591
+layerB_ref_p31   cyc=34363462
+layerB_dsi_p31   cyc=5768720
+layerB_dsq8_p255 cyc=7555799
+layerB_dsq8_p31  cyc=6354858
+layerB_dsq4_p255 cyc=6619875
+clsread_split_ms=5747 clsread_inter_ms=5560 ok=1 (10.4MB, melonDS DLDI: relative only)
+clsread_rawseq_kibs=1826 bytes=10368000
+status=OK

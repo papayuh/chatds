@@ -1,0 +1,11 @@
+# R11 LLM-written casual templates for list_max. Required slot: {xs}.
+what's the biggest number sitting in {xs}
+yo whats the max value in {xs}
+i need the largest item out of {xs}
+grab the top value from the list {xs}
+whats the highest number inside {xs}
+can u tell me the max of {xs}
+{xs} - need the biggest value in there
+trying to find the max element of {xs}
+give me the largest number in {xs} real quick
+so whats the biggest thing in {xs} then

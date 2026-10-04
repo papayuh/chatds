@@ -1,0 +1,11 @@
+# R11 LLM-written casual templates for bf_push_append. Required slot: {bug}.
+my code says {bug} and it just blows up
+{bug} - keeps throwing an attribute error, why
+yo this line crashes: {bug}
+whats wrong here, {bug} wont run
+can someone fix {bug} for me
+{bug} <- pretty sure thats not a real method
+this keeps failing: {bug}
+i copied this from js i think: {bug}
+{bug} - no clue why this errors out
+help, {bug} is broken somehow

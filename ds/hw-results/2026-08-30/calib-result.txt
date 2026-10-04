@@ -1,0 +1,15 @@
+calib_version=2
+file_bytes=16777216
+fnv1a_4096=eb766272
+seq_read_kibs_512=1110
+seq_read_kibs_4096=1173
+seq_read_kibs_65536=5288
+seq_read_kibs_524288=17925
+rand_read_us_512=1141
+rand_read_us_512_p50=1098
+rand_read_us_512_p95=1573
+rand_read_us_512_max=1799
+ram_max_malloc_bytes=4194304
+int8_dot_macs_per_s=5129353
+softfloat_ops_per_s=660066
+status=OK

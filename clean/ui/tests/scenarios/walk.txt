@@ -1,0 +1,40 @@
+# End-to-end walk through every screen: boot, typing, streaming, scrolling,
+# credits, cancel and an error. Run on the host (ui_sim) and in melonDS; the
+# dumps from both must match byte for byte.
+dump boot
+type What is a Zebra?
+dump typed
+button send
+wait 24
+dump busy
+until idle 900
+dump answer
+type long please
+button send
+wait 120
+dump stream
+button up
+button up
+dump scrolled
+until idle 900
+button up
+button up
+button up
+dump older
+button about
+dump about
+button down
+button down
+dump about2
+button about
+type long 1+2=3 (ok) ~`|
+dump symbols
+button stop
+button send
+wait 40
+button stop
+dump cancel
+type fail
+button send
+until idle 100
+dump error

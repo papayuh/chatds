@@ -1,0 +1,11 @@
+# R11 LLM-written casual templates for str_upper. Required slot: {s}.
+how do i shout {s} in all caps
+need {s} but every letter is upper case
+can u make {s} all uppercase for me
+whats the way to cap every letter in {s}
+{s} - want that in all capitals
+turn {s} into shouty caps pls
+i need {s} yelled in capital letters
+quick, how do i upper case {s}
+make {s} loud, all caps
+whats {s} look like fully uppercased

@@ -1,0 +1,6 @@
+requests/*.jsonl
+requests-python-natural/*.jsonl
+raw/
+results/
+train-v1.jsonl
+stats-v1.json

@@ -1,0 +1,6 @@
+heap_start=0x201ab8c
+heap_end=0x2134000
+heap_limit=0x23f4000
+arena_bytes=1134656
+arena_ptr=0x201e698
+arena_malloc=OK

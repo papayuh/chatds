@@ -1,0 +1,37 @@
+name: Host tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: host-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-and-host-c:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+      OMP_NUM_THREADS: "2"
+      OPENBLAS_NUM_THREADS: "2"
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install host test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y wamerican
+          python -m pip install --upgrade pip
+          python -m pip install pytest numpy sentencepiece
+      - name: Self-contained Python and host C tests
+        run: python tools/run_host_tests.py
+      # Device parity needs the non-distributable staged model/KB and melonDS.
+      # Run tools/engine_golden.py check locally; never launch a GUI in CI.

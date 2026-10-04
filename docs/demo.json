@@ -1,0 +1,18 @@
+{
+  "rom_sha256": "394a455ba5e3605dd1734844f21fe31b9b9e4809d9bc7c363407c5328738bff2",
+  "model_sha256": "cf2f9e9e1928d61834937959759623a6cf512e2378bceba3660bf763b2d9818b",
+  "tokenizer_sha256": "c890d56f5d251765c79a9c7a1145fcd4852c0bcfc065e5d75257ebd17ce19c1a",
+  "kb_sha256": "f0326927caf6d8e508aa19e3efe65a3f615c53295c24841a8bf4125eb22faefc",
+  "script_sha256": "b7ef4a70e3495bbebdc4d0f40075665c8ca4ee94264796dcab2f6617331d54bd",
+  "gif_sha256": "d6a837e2a106d0f1d7a5460711716abd700365e104508b4351fd92a5ad795cc6",
+  "questions": [
+    "what is the capital of france",
+    "whats 38 times 47"
+  ],
+  "answers": [
+    "paris.",
+    "calc(38*47) = 1786"
+  ],
+  "capture": "melonDS 1.1 offscreen; real scripted touch input; VRAM BGR555 capture",
+  "playback": "accelerated, with 2.5-second answer holds; not a latency measurement"
+}
