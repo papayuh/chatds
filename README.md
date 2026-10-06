@@ -30,7 +30,38 @@ not generated tokens divided by the whole run. largest main-RAM heap-break
 proxy: **3,653,632 bytes**. this is not a stack or live-allocation peak.
 [method, binary hashes and raw results](docs/ENGINE-BENCHMARK.md).
 
-## build
+## download the pretrained kit
+
+**you do not need to train a model to use the kit.** download
+`chatds-v0.1.0-sdcard.zip` from the
+[v0.1.0 release](https://github.com/papayuh/chatds/releases/tag/v0.1.0)
+once the owner publishes it. if the release is not visible, it is still a draft
+awaiting approval; draft assets are not a public download.
+
+1. extract the ZIP on your Windows, Mac or Linux PC. do not copy the ZIP itself
+   to the DS; the loader uses the extracted, uncompressed files.
+2. back up the flashcart card, then copy `chatds.nds` and the `chatds/` directory
+   to its root. keep the kit's `LICENSE`, `THIRD_PARTY_NOTICES.md`, `licenses/`
+   and `README.txt` with the files. do not replace the cart bootloader/firmware.
+3. eject cleanly and launch `chatds.nds` on your DS lite's DLDI flashcart.
+
+included: the clean ROM, 2,986,240-byte resident DSQ8 model, its matching
+2048-token runtime tokenizer, and the 42,321,808-byte KB3 fact index. the weights
+barely compress (about **5%**); ZIP mainly saves space on the fact index.
+ZIP extraction needs no special tool on current Windows/macOS.
+
+**training runs on a PC with PyTorch, usually a GPU—not on the DS.** the DS
+only runs inference. training your own model is optional; see [train/](train/README.md).
+
+code, pretrained model and runtime tokenizer: **MIT**. the Wikipedia-derived
+index and retrieved text: **CC BY-SA 4.0**, not MIT. preserve the included
+`chatds/kb-ATTRIBUTION.txt` and `licenses/CC-BY-SA-4.0.txt` when redistributing;
+identify further changes and share adapted text under the same or a permitted
+compatible license. the kit includes separate MIT model/tokenizer and linked
+runtime notices. no physical DS lite/DSpico test has been completed for this
+clean ROM; the exact kit passed host/melonDS smoke tests, not hardware certification.
+
+## build from source
 
 linux, `make`, a C compiler, python 3 and
 [BlocksDS](https://blocksds.github.io/docs/) are required.
@@ -42,11 +73,12 @@ make                           # clean/product/build/chatds.nds
 make host                      # clean/product/build/chatds-host
 ```
 
-weights and the fact index are **not included**. supply a compatible resident
-DSQ8 model and its matching tokenizer. the current model file is 2,986,240 bytes;
-the release KB3 index is 42,321,808 bytes. redistribution rights remain under
-review. model shape is read from the file, not baked into the ROM. unsupported
-layouts, mismatched vocabulary sizes and malformed files are refused.
+binaries and full datasets are not committed to the source tree. use the
+pretrained kit's `chatds/model.bin`, `chatds/tok.bin`, `chatds/kb.bin` and
+`chatds/kb-ATTRIBUTION.txt` in the packaging command below, or supply your own
+compatible licensed assets. model shape is read from the file, not baked into
+the ROM. unsupported layouts, mismatched vocabulary sizes and malformed files
+are refused.
 
 ```sh
 bash ds/hwkit/make-kit.sh --mode assistant \
@@ -64,7 +96,10 @@ IDs, stop, context, text and calculator results against the clean host.
 
 ## tokenizer assets
 
-no trained tokenizer models are shipped. use UTF-8 text you have rights to use:
+the pretrained kit already includes the runtime tokenizer matching its weights;
+do not replace it with a freshly trained tokenizer. original SentencePiece
+`.model` files are not included. to train **your own** tokenizer/model, use
+UTF-8 text you have rights to use:
 
 ```sh
 python3 -m pip install sentencepiece
@@ -120,9 +155,18 @@ oversized-input rejections. two numerical differences have exact pinned outputs;
 [details](docs/ENGINE-SWAP-INVESTIGATION.md). no physical DS timing or stack-canary
 run has been completed for this clean product.
 
-ChatDS code is MIT-licensed; see [LICENSE](LICENSE).
-[release audit](docs/PUBLIC_RELEASE_AUDIT.md) records
-remaining data and binary-release gates. no model download is offered yet.
+ChatDS code is MIT-licensed; see [LICENSE](LICENSE). the owner also releases the
+kit's trained model and runtime tokenizer under MIT; see its
+`licenses/MODEL-TOKENIZER-MIT.txt`. the code-only source
+[release audit](docs/PUBLIC_RELEASE_AUDIT.md) is historical; the pretrained
+release notes and included notices describe the separate binary/data release.
+
+training answers include AI-generated DeepSeek API outputs and project-owned
+Python/arithmetic generators. [DeepSeek's official terms](https://cdn.deepseek.com/policies/en-US/deepseek-terms-of-use.html)
+(last updated March 27, 2026; checked October 5, 2026), sections 1.1 and 4.2,
+cover APIs, assign provider output rights if any to users, and allow training
+other models, subject to law and the terms. no underlying training corpus is
+included. answers remain AI-generated and can be wrong.
 
 BlocksDS/libnds and its runtime retain their own licenses. Wikipedia-derived
 index/context data is CC BY-SA 4.0; TinyStories tokenizer-training data is
