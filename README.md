@@ -34,9 +34,7 @@ proxy: **3,653,632 bytes**. this is not a stack or live-allocation peak.
 
 **you do not need to train a model to use the kit.** download
 `chatds-v0.1.0-sdcard.zip` from the
-[v0.1.0 release](https://github.com/papayuh/chatds/releases/tag/v0.1.0)
-once the owner publishes it. if the release is not visible, it is still a draft
-awaiting approval; draft assets are not a public download.
+[v0.1.0 release](https://github.com/papayuh/chatds/releases/tag/v0.1.0).
 
 1. extract the ZIP on your Windows, Mac or Linux PC. do not copy the ZIP itself
    to the DS; the loader uses the extracted, uncompressed files.
