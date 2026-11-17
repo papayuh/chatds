@@ -161,7 +161,8 @@ typedef struct {
 } cds_config;
 
 /* key=value lines, '#' comments, unknown keys ignored. Defaults: steps 64,
- * kbd 1, instruct 1, prompt "". 0 ok, -1 unreadable, -2 bad value. */
+ * kbd 1, instruct 1, prompt "". 0 ok, -1 open/read/close error (errno),
+ * -2 bad value. */
 int cds_config_read(const char *path, cds_config *c);
 
 /* File present, size >= min_size, starts with magic (NULL: any). Fills *size. */

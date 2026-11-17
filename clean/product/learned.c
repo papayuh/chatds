@@ -6,6 +6,7 @@
 #include <string.h>
 #include "internal.h"
 #include "learned.h"
+#include "chatds_storage.h"
 static const char *model_directory;
 static chatds_session *owner;
 static cds_round3 cached;
@@ -28,8 +29,11 @@ static int arena(chatds_session *s, uint8_t **blob, cds_router_work **work) {
 }
 static int load(int head, uint8_t *blob, cds_router *r) {
     char path[512]; uint8_t hash[32];
-    if (!model_directory || snprintf(path, sizeof path, "%s%s", model_directory, names[head]) >= (int)sizeof path) return -1;
-    FILE *f = fopen(path, "rb"); if (!f) return -1;
+    if (!model_directory) return -1;
+    if (cds_path_join(path, sizeof path, model_directory, names[head]))
+        return cds_storage_error("learned path failed in directory", model_directory);
+    FILE *f = fopen(path, "rb");
+    if (!f) return cds_storage_error("learned open failed", path);
     /* No per-file stdio read buffer: avoid a new high-water heap allocation. */
     setvbuf(f, NULL, _IONBF, 0);
     int bad = fread(blob, 1, sizes[head], f) != sizes[head];

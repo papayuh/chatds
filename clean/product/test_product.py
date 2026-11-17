@@ -76,6 +76,9 @@ def test_invalid_config_publishes_failure(executable, tmp_path, config):
     assert result.returncode != 0
     assert (out / 'out.txt').read_text().endswith('status=FAIL\n')
     assert (out / 'ids.txt').read_text() == ''
+    assert 'malformed run.txt:' in result.stderr
+    assert str(tmp_path / 'run.txt') in result.stderr
+    assert 'cannot read run.txt' not in result.stderr
 
 
 def test_bad_kb_fails_cleanly(executable, tmp_path):
@@ -90,6 +93,54 @@ def test_unwritable_publication_is_not_success(executable, tmp_path):
     result, _ = invoke(executable, tmp_path, 'steps=2\nprompt=a\n', output=tmp_path / 'missing/dir')
     assert result.returncode != 0
     assert 'publication failed' in result.stderr
+    assert str(tmp_path / 'missing/dir/ids.txt.tmp') in result.stderr
+    assert 'errno=' in result.stderr
+
+
+@pytest.mark.parametrize('kind', ['missing', 'directory'])
+def test_unreadable_config_and_publication_keep_both_errors(executable, tmp_path, kind):
+    run = tmp_path / 'run.txt'
+    if kind == 'directory':
+        run.mkdir()  # fopen succeeds on Linux, but reading fails with EISDIR.
+    output = tmp_path / 'absent-output'
+    result = subprocess.run([executable, '/unused/model', '/unused/tok', '-', run, str(output) + '/'],
+                            capture_output=True, text=True, timeout=10)
+    assert result.returncode != 0
+    assert f'cannot read run.txt: {run}:' in result.stderr
+    assert 'malformed run.txt' not in result.stderr
+    assert 'errno=' in result.stderr
+    assert result.stderr.index('cannot read run.txt') < result.stderr.index('result publication failed')
+    assert str(output / 'out.txt.tmp') in result.stderr
+
+
+@pytest.mark.parametrize('block', ['ids.txt.tmp', 'out.txt', 'debug.log'])
+def test_blocked_temp_or_destination_is_a_failed_publication(executable, tmp_path, block):
+    output = tmp_path / 'output'; output.mkdir()
+    blocked = output / block; blocked.mkdir()
+    (blocked / 'keep').write_text('do not remove')
+    result, _ = invoke(executable, tmp_path, 'steps=2\nprompt=2+3\n', output=output)
+    assert result.returncode != 0
+    assert 'result publication failed' in result.stderr
+    assert str(blocked) in result.stderr and 'errno=' in result.stderr
+    assert (blocked / 'keep').read_text() == 'do not remove'
+    if block != 'out.txt':
+        assert (output / 'out.txt').read_text().endswith('status=FAIL\n')
+
+
+def test_output_path_too_long_fails_without_truncation(executable, tmp_path):
+    output = tmp_path / ('a' * 200) / ('b' * 100)
+    result, _ = invoke(executable, tmp_path, 'steps=2\nprompt=2+3\n', output=output)
+    assert result.returncode != 0
+    assert 'result path failed' in result.stderr
+    assert 'File name too long' in result.stderr
+    assert not output.exists()
+
+
+def test_host_learned_override_is_not_truncated(executable, tmp_path):
+    result, out = invoke(executable, tmp_path, 'steps=1\nprompt=2+3\n', learned_directory='x' * 300)
+    assert result.returncode != 0
+    assert 'asset path failed (no truncation)' in result.stderr
+    assert (out / 'out.txt').read_text().endswith('status=FAIL\n')
 
 
 @pytest.mark.parametrize('head', ['act', 'op', 'tag'])

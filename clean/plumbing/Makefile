@@ -17,7 +17,7 @@ build/cds-prompt: kb.c retrieve.c calc.c cds_prompt.c plumbing.h | build
 	$(CC) $(CFLAGS) $(SAN) kb.c retrieve.c calc.c cds_prompt.c -o $@
 
 # test_plumbing.c supplies a stub engine, so the plumbing never links a real one here.
-build/test-plumbing: $(SRC) test_plumbing.c plumbing.h | build
+build/test-plumbing: $(SRC) test_plumbing.c plumbing.h ../include/chatds_storage.h | build
 	$(CC) $(CFLAGS) -std=gnu99 $(SAN) $(SRC) test_plumbing.c -o $@
 
 # python3 ../../campaign/pipeline/textops.py --emit-h > textops_tab.h regenerates the phrase tables
@@ -31,7 +31,7 @@ build/test-prestep: prestep.c textops.c calc.c test_prestep.c prestep.h prestep_
 build:
 	mkdir -p build
 
-arm: $(SRC) plumbing.h
+arm: $(SRC) plumbing.h ../include/chatds_storage.h
 	mkdir -p build/arm
 	cd build/arm && for f in $(SRC); do $(ARMCC) $(ARMFLAGS:-I../%=-I../../../%) -c ../../$$f || exit 1; done
 
