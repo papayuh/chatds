@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "plumbing.h"
+#include "chatds_storage.h"
 
 #define PATH_CAP 256
 
@@ -50,7 +51,9 @@ int cds_config_read(const char *path, cds_config *c) {
                 c->instruct = x != 0;
         }
     }
-    fclose(f);
+    int error = ferror(f) ? (errno ? errno : EIO) : 0;
+    if (fclose(f) && !error) error = errno ? errno : EIO;
+    if (error) { errno = error; return -1; }
     return rc;
 }
 
@@ -75,29 +78,37 @@ chatds_status cds_preflight(const char *path, const char *magic, size_t magic_le
 }
 
 static int tmp_path(const char *path, char *out) {
-    return snprintf(out, PATH_CAP, "%s.tmp", path) < PATH_CAP ? 0 : -1;
+    return cds_path_join(out, PATH_CAP, path, ".tmp");
 }
 
 FILE *cds_atomic_open(const char *path) {
     char tmp[PATH_CAP];
-    return tmp_path(path, tmp) ? NULL : fopen(tmp, "wb");
+    if (tmp_path(path, tmp)) { cds_storage_error("result path failed", path); return NULL; }
+    FILE *f = fopen(tmp, "wb");
+    if (!f) cds_storage_error("result open failed", tmp);
+    return f;
 }
 
 int cds_atomic_commit(FILE *f, const char *path) {
     char tmp[PATH_CAP];
     if (!f)
         return -1;
-    int bad = ferror(f) | fflush(f);
-    bad |= fclose(f);
-    if (bad || tmp_path(path, tmp))
-        return -1;
-    remove(path); /* FAT rename does not replace an existing file */
-    return rename(tmp, path) ? -1 : 0;
+    int error = ferror(f) ? (errno ? errno : EIO) : 0;
+    if (fflush(f) && !error) error = errno ? errno : EIO;
+    if (fclose(f) && !error) error = errno ? errno : EIO;
+    if (error) { errno = error; return cds_storage_error("result write failed", path); }
+    if (tmp_path(path, tmp)) return cds_storage_error("result path failed", path);
+    /* FAT rename does not replace an existing file. Do not hide remove errors. */
+    if (remove(path) && errno != ENOENT) return cds_storage_error("result remove failed", path);
+    if (rename(tmp, path)) return cds_storage_error("result rename failed", path);
+    return 0;
 }
 
 static FILE *open_in(const char *dir, const char *name, char *path) {
-    if (snprintf(path, PATH_CAP, "%s%s", dir, name) >= PATH_CAP - 4)
+    if (cds_path_join(path, PATH_CAP - 4, dir, name)) {
+        cds_storage_error("result path failed in directory", dir);
         return NULL;
+    }
     return cds_atomic_open(path);
 }
 

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "dispatch.h"
+#include "chatds_storage.h"
 #include "textops.h"
 #include "learned.h"
 #include "ownerfix.h"
@@ -392,11 +393,16 @@ void c14_cancel(c14_runtime *r) {
     cds_dlg_reset(&r->dlg);
 }
 int c14_log(c14_runtime *r, const char *directory) {
-    char path[256]; if (snprintf(path, sizeof path, "%sdebug.log", directory) >= (int)sizeof path) return -1;
-    FILE *f = fopen(path, "a"); if (!f) return -1;
+    char path[256];
+    if (cds_path_join(path, sizeof path, directory, "debug.log"))
+        return cds_storage_error("log path failed in directory", directory);
+    FILE *f = fopen(path, "a"); if (!f) return cds_storage_error("log open failed", path);
     fprintf(f, "path=%s handler=%d template=%s retrieval=%s field=%s lookups=%lu reads=%lu stop=%s learned_act=%d act_margin=%ld learned_text=%d op_margin=%ld tag_margin=%ld\n",
         r->path, r->dec.handler, r->template_name, cds4_status_name[r->evidence.status], cds4_rel_name[r->evidence.field],
         (unsigned long)r->evidence.lookups, (unsigned long)r->evidence.sector_reads, cds_stop_string(r->g->answer.gen.stop),
         r->learned_act, (long)r->act_margin, r->learned_text, (long)r->op_margin, (long)r->tag_margin);
-    int bad = ferror(f); bad |= fclose(f) != 0; return bad ? -1 : 0;
+    int error = ferror(f) ? (errno ? errno : EIO) : 0;
+    if (fclose(f) && !error) error = errno ? errno : EIO;
+    if (error) { errno = error; return cds_storage_error("log write failed", path); }
+    return 0;
 }

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT
  * Product shell: every application translation unit is clean-room ChatDS code.
- * User assets and results live under fat:/chatds/.
+ * User assets and results live at /chatds/ on the launch-selected card.
  */
 #ifndef ARM9
 #define _POSIX_C_SOURCE 200809L
@@ -17,6 +17,7 @@
 #include "chatds_ui_demo.h" /* Scripted input only; the demo generator is not linked. */
 #include "dispatch.h"
 #include "learned.h"
+#include "chatds_storage.h"
 #ifdef ARM9
 #include "internal.h" /* Private boot kernel smoke check. */
 #endif
@@ -128,10 +129,11 @@ static void publish(int ok) {
         chatds_model_memory_bytes(model), extra, kb && kb->f ? kb : NULL,
         config.instruct ? NULL : current_question};
     publication_failed = config.instruct && runtime.g && c14_log(&runtime, directory) != 0;
+    if (publication_failed) result.ok = 0;
     publication_failed |= cds_publish(directory, &result) != 0;
     if (publication_failed) {
         cds_dlg_reset(&runtime.dlg);
-        fprintf(stderr, "result publication failed\n");
+        fprintf(stderr, "result publication failed in %s; check card, directory and write access\n", directory);
     }
     published = 1;
 }
@@ -254,26 +256,50 @@ static int session_input(FILE *in, FILE *out) {
     return bad;
 }
 #ifdef ARM9
+/* All optional instrumentation uses the same immutable root as model/config. */
+static FILE *card_open(const char *name, const char *mode) {
+    char path[256];
+    if (cds_path_join(path, sizeof path, directory, name)) {
+        cds_storage_error("card path failed in directory", directory); return NULL;
+    }
+    FILE *f = fopen(path, mode);
+    if (!f && (mode[0] != 'r' || errno != ENOENT)) cds_storage_error("card open failed", path);
+    return f;
+}
+static int card_close(FILE *f, const char *name) {
+    int error = ferror(f) ? (errno ? errno : EIO) : 0;
+    if (fclose(f) && !error) error = errno ? errno : EIO;
+    if (!error) return 0;
+    char path[256];
+    if (cds_path_join(path, sizeof path, directory, name))
+        return cds_storage_error("card close path failed", directory);
+    errno = error;
+    return cds_storage_error("card I/O failed", path);
+}
 static int card_session(void) {
-    FILE *in = fopen("fat:/chatds/session.txt", "rb"); if (!in) return 0;
-    FILE *out = fopen("fat:/chatds/session-results.tsv", "w");
+    FILE *in = card_open("session.txt", "rb"); if (!in) return 0;
+    FILE *out = card_open("session-results.tsv", "w");
     int bad = !out;
-    if (out) { bad = session_input(in, out); fprintf(out, "status=%s\n", bad ? "FAIL" : "OK"); fclose(out); }
-    fclose(in); return 1;
+    if (out) {
+        bad = session_input(in, out);
+        fprintf(out, "status=%s\n", bad ? "FAIL" : "OK");
+        card_close(out, "session-results.tsv");
+    }
+    card_close(in, "session.txt"); return 1;
 }
 static FILE *frame_index;
 static unsigned frame_count, script_frames;
 static int capture_error;
 
 static void snapshot(const char *name) {
-    char path[96];
-    snprintf(path, sizeof path, "fat:/chatds/%s.raw", name);
-    FILE *f = fopen(path, "wb");
+    char file[96];
+    if (cds_path_join(file, sizeof file, name, ".raw")) { capture_error = 1; return; }
+    FILE *f = card_open(file, "wb");
     if (!f) { capture_error = 1; return; }
     size_t pixels = CHATDS_UI_W * CHATDS_UI_H;
     int bad = fwrite(screen_top, 2, pixels, f) != pixels;
     bad |= fwrite(screen_bottom, 2, pixels, f) != pixels;
-    bad |= fclose(f) != 0;
+    bad |= card_close(f, file) != 0;
     capture_error |= bad;
 }
 static void script_tick(void *ctx) {
@@ -298,16 +324,15 @@ static void script_dump(void *ctx, const char *name, chatds_ui *state) {
     if (strchr(name, '/') || strstr(name, "..")) { capture_error = 1; return; }
     snapshot(name);
     fprintf(frame_index, "%s.raw %lu\n", name, (unsigned long)chatds_ui_millis(NULL));
-    char path[96];
-    snprintf(path, sizeof path, "fat:/chatds/%s.txt", name);
-    FILE *f = fopen(path, "w");
+    char file[96];
+    if (cds_path_join(file, sizeof file, name, ".txt")) { capture_error = 1; return; }
+    FILE *f = card_open(file, "w");
     if (!f) { capture_error = 1; return; }
     chatds_script_state_text(state, state_sink, f);
-    capture_error |= ferror(f);
-    capture_error |= fclose(f) != 0;
+    capture_error |= card_close(f, file) != 0;
 }
 static int run_script(void) {
-    FILE *f = fopen("fat:/chatds/ui-script.txt", "rb");
+    FILE *f = card_open("ui-script.txt", "rb");
     if (!f) return 0;
     /* Optional instrumentation: bound at 8191 bytes, but allocate only
      * the actual script. Small captures must not burn an artificial 8 KiB. */
@@ -322,7 +347,7 @@ static int run_script(void) {
     script[n] = 0;
     int bad = n != (size_t)script_size || ferror(f) || fgetc(f) != EOF;
     fclose(f);
-    frame_index = fopen("fat:/chatds/frames.txt", "w");
+    frame_index = card_open("frames.txt", "w");
     if (!frame_index) bad = 1;
     if (!bad) {
         chatds_script_host host = {NULL, script_tick, script_dump, screen_top, screen_bottom};
@@ -330,14 +355,13 @@ static int run_script(void) {
     }
     free(script);
     if (frame_index) {
-        bad |= ferror(frame_index);
-        bad |= fclose(frame_index) != 0;
+        bad |= card_close(frame_index, "frames.txt") != 0;
     }
-    f = fopen("fat:/chatds/ui-result.txt", "w");
+    f = card_open("ui-result.txt", "w");
     if (f) {
         fprintf(f, "frames=%u\nstatus=%s\n", frame_count,
                 bad || capture_error || publication_failed ? "FAIL" : "OK");
-        fclose(f);
+        card_close(f, "ui-result.txt");
     }
     return 1;
 }
@@ -389,15 +413,28 @@ int main(int argc, char **argv) {
     consoleDemoInit();
     cpuStartTiming(0);
     stack_paint();
-    if (!fatInitDefault()) { puts("FAIL: fatInitDefault()"); goto idle; }
+    if (!fatInitDefault()) {
+        cds_storage_error("FAIL: fatInitDefault (check launch mode/card)", fatGetDefaultDrive()); goto idle;
+    }
+    directory = cds_storage_root(fatGetDefaultDrive());
+    if (!directory) {
+        cds_storage_error("FAIL: unsupported storage drive (only fat:/ and sd:/)", fatGetDefaultDrive()); goto idle;
+    }
+    printf("storage: %s\n", directory);
+    char model_file[32], tok_file[32], kb_file[32], run_file[32];
+    if (cds_path_join(model_file, sizeof model_file, directory, "model.bin") ||
+        cds_path_join(tok_file, sizeof tok_file, directory, "tok.bin") ||
+        cds_path_join(kb_file, sizeof kb_file, directory, "kb.bin") ||
+        cds_path_join(run_file, sizeof run_file, directory, "run.txt")) {
+        cds_storage_error("FAIL: storage path", directory); goto idle;
+    }
+    model_path = model_file; tok_path = tok_file; kb_path = kb_file; run_path = run_file;
     const char *kernel_check = cds_matvec_self_check() ?
         "gs32 boot self-check PASS" : "gs32 boot self-check FAIL; asm disabled; using C";
     puts(kernel_check);
-    FILE *kernel_log = fopen("fat:/chatds/kernel.txt", "w");
-    if (kernel_log) { fprintf(kernel_log, "%s\n", kernel_check); fclose(kernel_log); }
-    model_path = "fat:/chatds/model.bin"; tok_path = "fat:/chatds/tok.bin";
-    kb_path = "fat:/chatds/kb.bin"; run_path = "fat:/chatds/run.txt";
-    directory = "fat:/chatds/";
+    FILE *kernel_log = card_open("kernel.txt", "w");
+    if (kernel_log) { fprintf(kernel_log, "%s\n", kernel_check); card_close(kernel_log, "kernel.txt"); }
+
 #else
     if (argc != 6 && argc != 7) { fprintf(stderr, "usage: chatds-host MODEL TOK KB-or-- RUN OUTDIR/ [--serve]\n"); return 2; }
     serve = argc == 7 && !strcmp(argv[6], "--serve");
@@ -409,8 +446,12 @@ int main(int argc, char **argv) {
     }
 #endif
     previous = ticks();
-    if (cds_config_read(run_path, &config) || config.steps > 256 || !config.steps) {
-        fprintf(stderr, "invalid run.txt\n"); goto fail;
+    int config_status = cds_config_read(run_path, &config);
+    if (config_status == -1) {
+        cds_storage_error("cannot read run.txt", run_path); goto fail;
+    }
+    if (config_status || config.steps > 256 || !config.steps) {
+        fprintf(stderr, "malformed run.txt: %s (check values; steps must be 1..256)\n", run_path); goto fail;
     }
     chatds_status status = chatds_model_load(model_path, &model);
     if (status != CHATDS_OK) { fprintf(stderr, "%s\n", chatds_status_string(status)); goto fail; }
@@ -435,15 +476,21 @@ int main(int argc, char **argv) {
     /* Card KB4 supersedes KB3. A malformed/unreadable KB4 is fatal, never
      * disguised as an absent optional asset. Host accepts explicit KB4 path. */
 #ifdef ARM9
-    strcpy(asset_path, "fat:/chatds/kb4.bin");
+    if (cds_path_join(asset_path, sizeof asset_path, directory, "kb4.bin")) goto path_fail;
 #else
     FILE *probe = fopen(kb_path, "rb"); char magic[4] = {0};
     if (probe) { if (fread(magic, 1, 4, probe) != 4) magic[0] = 0; fclose(probe); }
-    if (!memcmp(magic, "KB4", 3)) snprintf(asset_path, sizeof asset_path, "%s", kb_path);
-    else {
+    if (!memcmp(magic, "KB4", 3)) {
+        if (cds_path_join(asset_path, sizeof asset_path, kb_path, "")) goto path_fail;
+    } else {
         const char *slash = strrchr(kb_path, '/');
-        if (slash) snprintf(asset_path, sizeof asset_path, "%.*s/kb4.bin", (int)(slash - kb_path), kb_path);
-        else snprintf(asset_path, sizeof asset_path, "%skb4.bin", directory);
+        if (slash) {
+            size_t n = (size_t)(slash - kb_path) + 1;
+            if (n >= sizeof asset_path) { errno = ENAMETOOLONG; goto path_fail; }
+            memcpy(asset_path, kb_path, n); asset_path[n] = 0;
+            if (n + strlen("kb4.bin") >= sizeof asset_path) { errno = ENAMETOOLONG; goto path_fail; }
+            strcpy(asset_path + n, "kb4.bin");
+        } else if (cds_path_join(asset_path, sizeof asset_path, directory, "kb4.bin")) goto path_fail;
     }
 #endif
     if (c14_open(&runtime, &generator, asset_path)) goto fail;
@@ -456,13 +503,17 @@ int main(int argc, char **argv) {
     chatds_ui_engine_gen_init(&generator, session, &tok, kb && kb->f ? kb : NULL,
                              config.instruct, prompt_ids, shape->context_length, config.steps);
 #ifdef ARM9
-    strcpy(asset_path, "fat:/chatds/");
+    if (cds_path_join(asset_path, sizeof asset_path, directory, "")) goto path_fail;
 #else
     const char *learned_env = getenv("CHATDS_ROUND3_DIR");
     const char *model_slash = strrchr(model_path, '/');
-    if (learned_env) snprintf(asset_path, sizeof asset_path, "%s", learned_env);
-    else if (model_slash) snprintf(asset_path, sizeof asset_path, "%.*s/", (int)(model_slash - model_path), model_path);
-    else strcpy(asset_path, "./");
+    if (learned_env) {
+        if (cds_path_join(asset_path, sizeof asset_path, learned_env, "")) goto path_fail;
+    } else if (model_slash) {
+        size_t n = (size_t)(model_slash - model_path) + 1;
+        if (n >= sizeof asset_path) { errno = ENAMETOOLONG; goto path_fail; }
+        memcpy(asset_path, model_path, n); asset_path[n] = 0;
+    } else strcpy(asset_path, "./");
 #endif
     if (config.instruct && c24_models_init(session, asset_path)) {
         fprintf(stderr, "invalid round3 models or insufficient fallback workspace\n"); goto fail;
@@ -490,6 +541,8 @@ int main(int argc, char **argv) {
 #endif
     rc = batch(0);
     goto finish;
+path_fail:
+    cds_storage_error("asset path failed (no truncation)", directory);
 fail:
     publish(0);
 finish:

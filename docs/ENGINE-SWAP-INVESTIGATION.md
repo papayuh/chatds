@@ -28,8 +28,9 @@ config/image/ROM-copy boundary and process cleanup.
 ## Confirmed facts
 
 1. The clean-only product ROM builds and connects engine, tokenizer, plumbing,
-   UI, and result publication. The final product ships `chatds.nds` and uses
-   `fat:/chatds/`. Only the historical black-box oracle uses the old card path.
+   UI, and result publication. The product ships `chatds.nds`; current card
+   setup is documented in [README.md](../README.md#run). Only the historical
+   black-box oracle uses the old card path.
 2. The scout and generalized engine agree exactly on both failing inputs:
    **2,622 operation records** for the uppercase question and **69** for empty
    BOS. Records include embedding, every RMSNorm/matvec/attention/residual, and

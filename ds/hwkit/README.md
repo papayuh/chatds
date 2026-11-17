@@ -90,7 +90,8 @@ to return to interactive use.
 
 ## card layout and controls
 
-copy to the flashcart card root, preserving its bootloader files:
+follow [card setup and storage selection](../../README.md#run), preserving any
+flashcart bootloader files. staged layout:
 
 ```text
 chatds.nds
@@ -134,8 +135,9 @@ Results are `chatds/{out,ids,ctx,calc,heap}.txt`, plus append-only `debug.log`.
 Optional test-only `session.txt` accepts R (reset), S (bounded permitted state),
 Q (question), and C (cancel after N incremental steps); output is
 `session-results.tsv`. Neither test input file is included in normal kits.
-Optional UI scripting allocates 8 KiB only while its script runs; that
-instrumented mode has a separate memory budget from normal product use.
+Optional UI scripting allocates the script's byte length plus a terminator
+(up to 8192 bytes) only while it runs; that instrumented mode has a separate
+memory budget from normal product use.
 Each TXT result is written through a temporary file and renamed; `out.txt` is published last, with `status=` as its final line.
 The TXT files describe the latest run, not a session archive. A failed publication is
 not reported as a successful answer by the host runner or UI.

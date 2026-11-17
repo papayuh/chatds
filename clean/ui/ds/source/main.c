@@ -3,9 +3,9 @@
  *
  * Both screens are 16-bit bitmap backgrounds and the UI renders straight into
  * VRAM, so the UI costs no framebuffer RAM. Normal run: pen and keys drive the
- * UI at 60 Hz. Test run: if fat:/chatds-ui/script.txt exists, the script is
- * played through the same UI code instead of the hardware, the screens are
- * dumped to fat:/chatds-ui/ and fat:/chatds-ui/result.txt ends in status=OK.
+ * UI at 60 Hz. Test run: if /chatds-ui/script.txt exists on the selected card,
+ * the script is played through the same UI code instead of the hardware.
+ * Screens and result.txt are dumped into that same card-root directory.
  *
  * The answer source here is the canned demo generator. The engine is wired in
  * by building a chatds_ui_engine_gen instead (see clean/ui/README.md).
@@ -17,7 +17,16 @@
 
 #include "chatds_ui_demo.h"
 
-#define DIR "fat:/chatds-ui/"
+#include "chatds_storage.h"
+
+static char directory[32];
+static FILE *card_open(const char *name, const char *mode) {
+    char path[128];
+    if (cds_path_join(path, sizeof path, directory, name)) return NULL;
+    FILE *f = fopen(path, mode);
+    if (!f && (mode[0] != 'r' || errno != ENOENT)) cds_storage_error("UI card open failed", path);
+    return f;
+}
 
 static chatds_ui ui;
 static chatds_demo_gen demo;
@@ -42,8 +51,9 @@ static void state_line(void *ctx, const char *s)
 static void write_screen(const char *name, const char *ext, const uint16_t *fb)
 {
     char path[64];
-    snprintf(path, sizeof path, DIR "%s.%s", name, ext);
-    FILE *f = fopen(path, "wb");
+    int n = snprintf(path, sizeof path, "%s.%s", name, ext);
+    if (n < 0 || n >= (int)sizeof path) return;
+    FILE *f = card_open(path, "wb");
     if (!f) return;
     fwrite(fb, 2, CHATDS_UI_W * CHATDS_UI_H, f);
     fclose(f);
@@ -55,8 +65,8 @@ static void dump(void *ctx, const char *name, chatds_ui *u)
     char path[64];
     write_screen(name, "top", top);
     write_screen(name, "bot", bottom);
-    snprintf(path, sizeof path, DIR "%s.txt", name);
-    txt = fopen(path, "w");
+    if (cds_path_join(path, sizeof path, name, ".txt")) return;
+    txt = card_open(path, "w");
     if (txt) {
         chatds_script_state_text(u, state_line, NULL);
         fclose(txt);
@@ -66,7 +76,7 @@ static void dump(void *ctx, const char *name, chatds_ui *u)
 
 static int run_script(void)
 {
-    FILE *f = fopen(DIR "script.txt", "rb");
+    FILE *f = card_open("script.txt", "rb");
     if (!f) return 0;
     static char script[16384];
     size_t n = fread(script, 1, sizeof script - 1, f);
@@ -76,7 +86,7 @@ static int run_script(void)
     chatds_script_host host = {NULL, vblank, dump, top, bottom};
     int bad = chatds_script_run(&ui, script, &host);
 
-    f = fopen(DIR "result.txt", "w");
+    f = card_open("result.txt", "w");
     if (f) {
         fprintf(f, "frames=%lu\ndumps=%d\nbad_line=%d\n%s\n", (unsigned long)ui.frame, dumps, bad,
                 bad ? "status=FAIL" : "status=OK");
@@ -128,8 +138,11 @@ int main(void)
     chatds_ui_init(&ui, &demo.gen);
     chatds_ui_render_all(&ui, top, bottom);
 
-    if (fatInitDefault() && run_script())
-        for (;;) swiWaitForVBlank();
+    if (fatInitDefault()) {
+        const char *drive = cds_storage_drive(fatGetDefaultDrive());
+        if (drive && !cds_path_join(directory, sizeof directory, drive, "chatds-ui/") && run_script())
+            for (;;) swiWaitForVBlank();
+    }
     interactive();
     return 0;
 }
