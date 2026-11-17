@@ -43,8 +43,10 @@ cds_tokenizer tk = {enc, pc, &tok};
 
 cds_session_plan(model, 0, 192, heap_free - reserve, CHATDS_KERNEL_FAST, &session);
 cds_ask(session, &tk, have_kb ? &kb : NULL, cfg.instruct, question, &opts, &answer);
-cds_publish("fat:/chatds/", &result);
+cds_publish(directory, &result);
 ```
+
+`directory` is the product shell's selected root; see [card setup](../../README.md#run).
 
 Keep `cds_kb` and `cds_answer` static or on the heap (about 3 KiB and 1 KiB), not on the DTCM
 stack. Questions over 127 bytes are refused, as the DS editor never produces them.

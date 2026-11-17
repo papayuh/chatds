@@ -84,11 +84,11 @@ make host                      # clean/product/build/chatds-host
 binaries and full datasets are not committed to the source tree. use the
 v0.2.0 kit's `chatds/model.bin`, `chatds/tok.bin`, `chatds/kb4.bin` and
 `chatds/kb-ATTRIBUTION.txt` in the packaging command below (or build a KB4 with
-`corpus/kb/build_kb4.py`), or supply your own compatible licensed assets. with
-the v0.2.0 assets and the same prompt, this tree rebuilds the release ROM
-byte-for-byte. model shape is read from
-the file, not baked into the ROM. unsupported layouts, mismatched vocabulary
-sizes and malformed files are refused.
+`corpus/kb/build_kb4.py`), or supply your own compatible licensed assets. this
+tree includes unreleased storage changes; for a byte-identical v0.2.0 rebuild,
+see the [release rebuild instructions](docs/RELEASE-v0.2.0.md#rebuild).
+model shape is read from the file, not baked into the ROM. unsupported layouts,
+mismatched vocabulary sizes and malformed files are refused.
 
 ```sh
 bash ds/hwkit/make-kit.sh --mode assistant \
@@ -162,6 +162,18 @@ use a DS lite with a DLDI flashcart; DSpico is the intended target. back up the
 card, then copy `chatds.nds` and `chatds/` from the kit to its root. don't replace
 the flashcart bootloader. eject cleanly and launch `chatds.nds`.
 
+**source builds only:** this tree adds launch-selected storage for DSi internal
+SD; the published v0.2.0 ROM does not contain this fix. real DSi/TWiLight support
+remains unverified. internal SD needs a launcher mode with SD access (normally
+DSi mode); a DS-mode launch cannot gain that access from this path fix.
+
+at boot, the source-built ROM prints `storage: fat:/chatds/` for DLDI or
+`storage: sd:/chatds/` for internal SD. keep `chatds/` at the selected card's
+root even when the ROM is in a nested folder. all assets, results and logs stay
+on that card; missing files or write errors never trigger fallback to another
+card. the app does not create missing directories.
+[storage design and hardware acceptance plan](docs/specs/dsi-sd-storage.md).
+
 - touch **Send**, keyboard return or **START** to ask.
 - **B** or **Stop** cancels between engine steps. **Up/Down** scrolls.
 - **About** or **SELECT** opens credits. **Bksp** deletes a character.
@@ -170,7 +182,12 @@ the flashcart bootloader. eject cleanly and launch `chatds.nds`.
 
 results go to `chatds/out.txt`, `ids.txt`, `ctx.txt`, `calc.txt` and `heap.txt`.
 `status=OK` means inference and file writes completed, not that the answer is
-correct. python and shell answers are text, never executed. see
+correct. in source builds, a failed `debug.log` write also makes publication
+fail. `cannot read run.txt` reports the selected path and errno: check extraction,
+card access and launch mode. `malformed run.txt` means the file was read but its
+values are invalid (`steps` must be 1..256). a later `result publication failed`
+message is a separate write error; check the earlier diagnostic first.
+python and shell answers are text, never executed. see
 [kit/emulator setup](ds/hwkit/README.md) for melonDS use.
 
 ## pocket math notebook

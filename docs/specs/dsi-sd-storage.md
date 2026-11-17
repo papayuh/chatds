@@ -2,22 +2,22 @@
 
 ## Evidence and limits
 
-Public main and v0.2.0 are 8074642 (remote checked read-only); no open/closed
-GitHub issues or newer pull requests fix storage. Product `main.c` hardcodes
-`fat:/chatds/`, including independent session/UI paths. `cds_config_read()`
-returns -1 on open failure, but main calls every failure `invalid run.txt` and
-then publishes failure results to the same inaccessible directory. Running the
-existing host binary with missing run/output directories reproduced exactly
+At investigation time, public main and v0.2.0 were 8074642 (remote checked
+read-only); no open/closed GitHub issues or newer pull requests fixed storage.
+In that baseline, product `main.c` hardcoded `fat:/chatds/`, including independent
+session/UI paths. `cds_config_read()` returned -1 on open failure, but main
+called every failure `invalid run.txt` and then published failure results to the
+same inaccessible directory. Running the baseline host binary with missing
+run/output directories reproduced exactly
 `invalid run.txt` and `result publication failed`. This proves the diagnostic
 chain, **not** a DSi hardware diagnosis. Missing extraction, malformed config,
 permissions, and launcher DS-mode restrictions remain alternative causes.
 
-The local v0.2.0 ZIP contains root `chatds.nds` and `chatds/run.txt`, model,
-tokenizer, KB4 and three learned heads. Release ROM SHA256 is
-b2e7a47ba0c4509fdbefa6401261f6717810ec6bfad8f447ea2b92d88e1b100a.
-The release claims real DS/DSpico testing, not DSi support. `ndstool -i` and
-header inspection show unit code 0x02 and flags at 0x1BF = 0x01 in both the
-release and new ROM; there is no obvious DS-only header/build switch to change.
+Release assets, ROM SHA256 and DS/DSpico evidence are recorded in the
+[v0.2.0 release notes](../RELEASE-v0.2.0.md); that release does not claim DSi
+support. During investigation, `ndstool -i` and header inspection showed unit
+code 0x02 and flags at 0x1BF = 0x01 in both the release and candidate ROM; there
+was no obvious DS-only header/build switch to change.
 This still cannot prove TWiLight's actual launch mode or SD permissions.
 
 Reddit plain GET returned HTTP 200 with an automatic challenge instead of thread

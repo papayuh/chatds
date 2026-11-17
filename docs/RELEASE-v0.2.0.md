@@ -55,7 +55,10 @@ the ZIP also has `README.txt`, `LICENSE`, `THIRD_PARTY_NOTICES.md`, `kit.json`
 
 ## rebuild
 
+Use the `v0.2.0` tag, not a later source tree:
+
 ```sh
+git checkout v0.2.0
 source tools/env.sh
 # assets/ holds the release model.bin and tok.bin plus their SHA256SUMS
 bash ds/hwkit/make-kit.sh --mode assistant --asset-dir assets \
@@ -64,15 +67,15 @@ bash ds/hwkit/make-kit.sh --mode assistant --asset-dir assets \
 sha256sum build/v0.2.0-kit/chatds.nds
 ```
 
-with BlocksDS 1.23.0 and Wonderful ARM GCC 16.2.0 this tree rebuilds the ROM
+with BlocksDS 1.23.0 and Wonderful ARM GCC 16.2.0 the tagged tree rebuilds the ROM
 byte-for-byte, and the kit's `chatds/` matches the release files above.
 
 ## validation
 
-run on this tree, ROM `b2e7a47b…100a`. all emulator checks are headless melonDS
+run on the v0.2.0 tree, ROM `b2e7a47b…100a`. all emulator checks are headless melonDS
 (Qt offscreen, display sockets denied, no GPU), not hardware certification.
 
-- **ROM rebuild.** `make-kit.sh --asset-dir` from this tree gives ROM
+- **ROM rebuild.** `make-kit.sh --asset-dir` from the tagged tree gives ROM
   `b2e7a47b…100a`, byte-identical to the card build, and the same 8 `chatds/`
   files.
 - **host tests.** `python3 tools/run_host_tests.py`: 851 passed, 3 skipped

@@ -24,6 +24,8 @@ the core keeps about 8 KB of state and no framebuffers. on the ds it draws strai
 for the real clean-engine product, run root `make` or `ds/hwkit/make-kit.sh`.
 that shell is `../product/`; the commands below still build the isolated UI demo,
 not the shipped application. the product owns its clock and asset paths.
+diagnostic ROM card paths and selection policy:
+[storage spec](../../docs/specs/dsi-sd-storage.md#path-audit--scope).
 
 ```
 make test       # unit tests, host cc. SAN=1 adds asan/ubsan
